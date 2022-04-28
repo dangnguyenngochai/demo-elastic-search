@@ -1,24 +1,24 @@
-import indexing
-import pandas
-from elasticsearch import Elasticsearch
-es = Elasticsearch()
+import connecting
+import indexing 
+import pandas as pd
+import elasticsearch
 
-def load_sample_data_csv(data_file='for-elastic-search'):
-    df = pd.read_csv(data_file)
+
+def load_sample_data_csv(data_file='data/for-elastic-search.csv', index_col=0, usecols=None):
+    if usecols:
+        df = pd.read_csv(data_file, index_col=index_col, usecols=usecols).reset_index()
+    else:
+        df = pd.read_csv(data_file, index_col=index_col)
     return df
 
-def indexing_source(index_name, data_frame, field=[]):
-    for idx, data in enumerate(data_frame):
-        field = field if len(field) else list(data_frame.columns)
-        
-        data_to_index = data.iloc[:,field]
-       
-        es.index(index="index_name", id=idx, document=data)
-    
-    return resp
-
 if __name__ == "__main__":
-    print("in main")
-    print("indexing source")
-    df = load_sample_data_csv()
-    indexing_source('test', df)
+    print("loading data...")
+    sample_cols = ['article_id', 'title', 'text']
+    data_df = load_sample_data_csv(usecols=sample_cols)
+    data_df = data_df[:10]
+
+    print("connecting to eslastic instance...")
+    client = connecting.connect2es()
+
+    print("indexing data...")
+    indexing.indexing_source('test-es-indexing', data_df, client)
